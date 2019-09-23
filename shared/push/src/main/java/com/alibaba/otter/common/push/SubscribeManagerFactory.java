@@ -79,7 +79,7 @@ public class SubscribeManagerFactory implements ApplicationContextAware {
         if (type == null) {
             return null;
         }
-        SubscribeManager manager = (SubscribeManager) innerContainer.get(type);
+        SubscribeManager manager = innerContainer.get(type);
         return manager;
     }
 

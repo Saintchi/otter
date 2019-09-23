@@ -112,6 +112,11 @@ public class ConfigClientServiceImpl implements InternalConfigClientService, Arb
     }
 
     public void afterPropertiesSet() throws Exception {
+        // start modify by hyunji
+        System.setProperty(NID_NAME, "1");
+
+        // end modify by hyunji
+
         // 获取一下nid变量
         String nid = System.getProperty(NID_NAME);
         if (StringUtils.isEmpty(nid)) {

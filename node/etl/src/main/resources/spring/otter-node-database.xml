@@ -29,9 +29,14 @@
 			<bean class="org.springframework.jdbc.support.nativejdbc.SimpleNativeJdbcExtractor"/>
 		</property>
 		<property name="extractors">
+			<!--<map>-->
+				<!--<entry key="org.apache.commons.dbcp">-->
+						<!--<bean class="org.springframework.jdbc.support.nativejdbc.CommonsDbcpNativeJdbcExtractor" />-->
+				<!--</entry>-->
+			<!--</map>-->
 			<map>
-				<entry key="org.apache.commons.dbcp">
-						<bean class="org.springframework.jdbc.support.nativejdbc.CommonsDbcpNativeJdbcExtractor" />
+				<entry key="com.alibaba.druid.pool">
+					<bean class="com.alibaba.druid.support.spring.DruidNativeJdbcExtractor" />
 				</entry>
 			</map>
 		</property>
@@ -41,9 +46,12 @@
 		<property name="dataSourceHandlers">
 			<list>
 				<ref bean="mediaPushDataSourceHandler" />
+				<!--<ref bean="adsDataSourceHandler" />-->
 			</list>
 		</property>
 	</bean>
 	
 	<bean id="mediaPushDataSourceHandler" class="com.alibaba.otter.common.push.datasource.media.MediaPushDataSourceHandler" scope="singleton" />
+
+	<!--<bean id="adsDataSourceHandler" class="com.alibaba.otter.common.push.datasource.ads.AdsDataSourceHandler" scope="singleton" />-->
 </beans>

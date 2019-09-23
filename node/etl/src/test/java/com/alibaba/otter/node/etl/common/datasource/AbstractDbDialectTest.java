@@ -18,7 +18,7 @@ package com.alibaba.otter.node.etl.common.datasource;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.dbcp.BasicDataSource;
+import com.alibaba.druid.pool.DruidDataSource;
 import org.apache.commons.lang.StringUtils;
 import org.apache.ddlutils.model.Column;
 import org.apache.ddlutils.model.Table;
@@ -53,7 +53,7 @@ public class AbstractDbDialectTest {
 
     private DataSource createDataSource(String url, String userName, String password, String driverClassName,
                                         DataMediaType dataMediaType, String encoding) {
-        BasicDataSource dbcpDs = new BasicDataSource();
+        DruidDataSource dbcpDs = new DruidDataSource();
 
         dbcpDs.setRemoveAbandoned(true);
         dbcpDs.setLogAbandoned(true);

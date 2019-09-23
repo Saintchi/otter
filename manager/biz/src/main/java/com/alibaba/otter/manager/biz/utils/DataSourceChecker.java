@@ -76,9 +76,9 @@ public class DataSourceChecker {
     private static final String    SELECT_FAIL        = "SELECT\u672a\u6210\u529f";
 
     // DELETE未成功
-    // private static final String DELETE_FAIL = "DELETE\u672a\u6210\u529f";
+    private static final String DELETE_FAIL = "DELETE\u672a\u6210\u529f";
     // INSERT未成功
-    // private static final String INSERT_FAIL = "INSERT\u672a\u6210\u529f";
+    private static final String INSERT_FAIL = "INSERT\u672a\u6210\u529f";
 
     // 分库前缀必须大于后缀，且不能为负数
     // private static final String SPLIT_INDEX_FAIL =
@@ -199,7 +199,7 @@ public class DataSourceChecker {
 
     }
 
-    public String checkMap(String namespace, String name, Long dataSourceId) {
+    public String checkMap(String namespace, String name, Long dataSourceId) throws Exception{
         Connection conn = null;
         Statement stmt = null;
         DataMediaSource source = dataMediaSourceService.findById(dataSourceId);
@@ -207,17 +207,50 @@ public class DataSourceChecker {
         try {
             DbMediaSource dbMediaSource = (DbMediaSource) source;
             dataSource = dataSourceCreator.createDataSource(dbMediaSource);
-            // conn = dataSource.getConnection();
-            // if (null == conn) {
-            // return DATABASE_FAIL;
-            // }
+
+//             conn = dataSource.getConnection();
+//             if (null == conn) {
+//             return DATABASE_FAIL;
+//             }
+
             ModeValue namespaceValue = ConfigHelper.parseMode(namespace);
             ModeValue nameValue = ConfigHelper.parseMode(name);
             String tempNamespace = namespaceValue.getSingleValue();
             String tempName = nameValue.getSingleValue();
 
-            // String descSql = "desc " + tempNamespace + "." + tempName;
-            // stmt = conn.createStatement();
+
+//             String descSql = "desc " + tempNamespace + "." + tempName;
+//
+//             stmt = conn.createStatement();
+//
+//             String selectSql = "SELECT * from " + tempNamespace + "." +
+//             tempName + " where 1 = 0";
+//             String insertSql = "INSERT INTO " + tempNamespace + "." +
+//             tempName + " select * from ";
+//             insertSql += "( SELECT * from " + tempNamespace + "." + tempName
+//             + ") table2 where 1 = 0";
+//             String deleteSql = "DELETE from " + tempNamespace + "." +
+//             tempName + " where 1 = 0";
+//
+//             stmt = conn.createStatement();
+//
+//             try {
+//             stmt.executeQuery(selectSql);
+//             } catch (SQLException se) {
+//             return SELECT_FAIL;
+//             }
+//
+//             try {
+//             stmt.execute(insertSql);
+//             } catch (SQLException se) {
+//             return INSERT_FAIL;
+//             }
+////
+//             try {
+//             stmt.execute(deleteSql);
+//             } catch (SQLException se) {
+//             return DELETE_FAIL;
+//             }
 
             try {
                 Table table = DdlUtils.findTable(new JdbcTemplate(dataSource), tempNamespace, tempNamespace, tempName);
@@ -231,35 +264,6 @@ public class DataSourceChecker {
                 logger.error("check error!", e);
                 return SELECT_FAIL;
             }
-
-            // String selectSql = "SELECT * from " + tempNamespace + "." +
-            // tempName + " where 1 = 0";
-            // String insertSql = "INSERT INTO " + tempNamespace + "." +
-            // tempName + " select * from ";
-            // insertSql += "( SELECT * from " + tempNamespace + "." + tempName
-            // + ") table2 where 1 = 0";
-            // String deleteSql = "DELETE from " + tempNamespace + "." +
-            // tempName + " where 1 = 0";
-            //
-            // stmt = conn.createStatement();
-            //
-            // try {
-            // stmt.executeQuery(selectSql);
-            // } catch (SQLException se) {
-            // return SELECT_FAIL;
-            // }
-            //
-            // try {
-            // stmt.execute(insertSql);
-            // } catch (SQLException se) {
-            // return INSERT_FAIL;
-            // }
-            //
-            // try {
-            // stmt.execute(deleteSql);
-            // } catch (SQLException se) {
-            // return DELETE_FAIL;
-            // }
 
         } finally {
             closeConnection(conn, stmt);

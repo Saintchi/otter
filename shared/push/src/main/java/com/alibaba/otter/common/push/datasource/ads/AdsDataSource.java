@@ -14,8 +14,14 @@
  * limitations under the License.
  */
 
-package com.alibaba.otter.common.push.datasource.media;
+package com.alibaba.otter.common.push.datasource.ads;
 
+import com.alibaba.druid.pool.DruidDataSource;
+import com.alibaba.otter.common.push.supplier.DatasourceChangeCallback;
+import com.alibaba.otter.common.push.supplier.DatasourceInfo;
+import com.alibaba.otter.common.push.supplier.DatasourceSupplier;
+import com.alibaba.otter.common.push.supplier.ads.AdsDatasourceSupplier;
+import com.alibaba.otter.shared.common.model.config.data.DataMediaType;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -23,62 +29,52 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.util.Arrays;
-
 import javax.sql.CommonDataSource;
 import javax.sql.DataSource;
-
-import com.alibaba.druid.pool.DruidDataSource;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.otter.common.push.supplier.DatasourceChangeCallback;
-import com.alibaba.otter.common.push.supplier.DatasourceInfo;
-import com.alibaba.otter.common.push.supplier.DatasourceSupplier;
-import com.alibaba.otter.common.push.supplier.media.MediaDatasourceSupplier;
-import com.alibaba.otter.shared.common.model.config.data.DataMediaType;
-
 /**
  * media datasource support
- * 
+ *
  * @author jianghang 2013-4-18 下午03:45:44
  * @version 4.1.8
  */
-public class MediaPushDataSource implements DataSource {
+public class AdsDataSource implements DataSource {
 
-    private static final Logger logger                        = LoggerFactory.getLogger(MediaPushDataSource.class);
+    private static final Logger logger = LoggerFactory.getLogger(AdsDataSource.class);
 
     private volatile DataSource delegate;
-    private String              dbGroupKey;
-    private DatasourceSupplier  dataSourceSupplier;
+    private DatasourceSupplier dataSourceSupplier;
 
-    private int                 maxWait                       = 60 * 1000;
+    private int maxWait = 60 * 1000;
 
-    private int                 minIdle                       = 0;
+    private int minIdle = 0;
 
-    private int                 initialSize                   = 0;
+    private int initialSize = 0;
 
-    private int                 maxActive                     = 32;
+    private int maxActive = 32;
 
-    private int                 maxIdle                       = 32;
+    private int maxIdle = 32;
 
-    private int                 numTestsPerEvictionRun        = -1;
+    private int numTestsPerEvictionRun = -1;
 
-    private int                 timeBetweenEvictionRunsMillis = 60 * 1000;
+    private int timeBetweenEvictionRunsMillis = 60 * 1000;
 
-    private int                 removeAbandonedTimeout        = 5 * 60;
+    private int removeAbandonedTimeout = 5 * 60;
 
-    private int                 minEvictableIdleTimeMillis    = 5 * 60 * 1000;
+    private int minEvictableIdleTimeMillis = 5 * 60 * 1000;
 
-    private String              originalUrl;
-    private String              userName;
-    private String              password;
-    private String              driverClassName;
-    private DataMediaType       dataMediaType;
-    private String              encoding;
+    private String originalUrl;
+    private String userName;
+    private String password;
+    private String driverClassName;
+    private DataMediaType dataMediaType;
+    private String encoding;
 
-    public MediaPushDataSource(String originalUrl, String userName, String password, String driverClassName,
-                               DataMediaType dataMediaType, String encoding){
+    public AdsDataSource(String originalUrl, String userName, String password, String driverClassName,
+            DataMediaType dataMediaType, String encoding) {
         this.originalUrl = originalUrl;
         this.userName = userName;
         this.password = password;
@@ -96,13 +92,13 @@ public class MediaPushDataSource implements DataSource {
             return;
         }
         if (dataSourceSupplier == null) {
-            dataSourceSupplier = MediaDatasourceSupplier.newInstance(dbGroupKey);
+            dataSourceSupplier = AdsDatasourceSupplier.newInstance();
             dataSourceSupplier.start();
             dataSourceSupplier.addSwtichCallback(new DatasourceChangeCallback() {
 
                 public void masterChanged(DatasourceInfo newMaster) {
-                    String newUrl = buildMysqlUrl(newMaster.getAddress().getAddress().getHostAddress(),
-                                                  newMaster.getAddress().getPort());
+                    String newUrl = buildAdsUrl(newMaster.getAddress().getAddress().getHostAddress(),
+                            newMaster.getAddress().getPort(), newMaster.getDefaultDatabaseName());
                     try {
                         ((DruidDataSource) delegate).close();
                         DataSource newDelegate = doCreateDataSource(newUrl);
@@ -116,67 +112,68 @@ public class MediaPushDataSource implements DataSource {
         }
 
         DatasourceInfo datasourceInfo = dataSourceSupplier.fetchMaster();
-        String url = buildMysqlUrl(datasourceInfo.getAddress().getAddress().getHostAddress(),
-                                   datasourceInfo.getAddress().getPort());
+        String url = buildAdsUrl(datasourceInfo.getAddress().getAddress().getHostAddress(),
+                datasourceInfo.getAddress().getPort(), datasourceInfo.getDefaultDatabaseName());
 
         delegate = doCreateDataSource(url);
     }
 
-    private String buildMysqlUrl(String hostIp, int port) {
+    private String buildAdsUrl(String hostIp, int port, String defaultDatabaseName) {
         StringBuilder sb = new StringBuilder("jdbc:mysql://");
-        sb.append(hostIp).append(":").append(port);
+        // start modify by hunji
+        // url=jdbc:mysql://host:port/database
+        sb.append(hostIp).append(":").append(port).append("/").append(defaultDatabaseName);
+        // end modify by hunji
         return sb.toString();
     }
 
     protected DataSource doCreateDataSource(String url) {
-        DruidDataSource dbcpDs = new DruidDataSource();
+        DruidDataSource dataSource = new DruidDataSource();
 
-        dbcpDs.setInitialSize(initialSize);// 初始化连接池时创建的连接数
-        dbcpDs.setMaxActive(maxActive);// 连接池允许的最大并发连接数，值为非正数时表示不限制
-        dbcpDs.setMaxIdle(maxIdle);// 连接池中的最大空闲连接数，超过时，多余的空闲连接将会被释放，值为负数时表示不限制
-        dbcpDs.setMinIdle(minIdle);// 连接池中的最小空闲连接数，低于此数值时将会创建所欠缺的连接，值为0时表示不创建
-        dbcpDs.setMaxWait(maxWait);// 以毫秒表示的当连接池中没有可用连接时等待可用连接返回的时间，超时则抛出异常，值为-1时表示无限等待
-        dbcpDs.setRemoveAbandoned(true);// 是否清除已经超过removeAbandonedTimeout设置的无效连接
-        dbcpDs.setLogAbandoned(true);// 当清除无效链接时是否在日志中记录清除信息的标志
-        dbcpDs.setRemoveAbandonedTimeout(removeAbandonedTimeout); // 以秒表示清除无效链接的时限
-        dbcpDs.setNumTestsPerEvictionRun(numTestsPerEvictionRun);// 确保连接池中没有已破损的连接
-        dbcpDs.setTestOnBorrow(false);// 指定连接被调用时是否经过校验
-        dbcpDs.setTestOnReturn(false);// 指定连接返回到池中时是否经过校验
-        dbcpDs.setTestWhileIdle(true);// 指定连接进入空闲状态时是否经过空闲对象驱逐进程的校验
-        dbcpDs.setTimeBetweenEvictionRunsMillis(timeBetweenEvictionRunsMillis); // 以毫秒表示空闲对象驱逐进程由运行状态进入休眠状态的时长，值为非正数时表示不运行任何空闲对象驱逐进程
-        dbcpDs.setMinEvictableIdleTimeMillis(minEvictableIdleTimeMillis); // 以毫秒表示连接被空闲对象驱逐进程驱逐前在池中保持空闲状态的最小时间
+        dataSource.setInitialSize(initialSize);// 初始化连接池时创建的连接数
+        dataSource.setMaxActive(maxActive);// 连接池允许的最大并发连接数，值为非正数时表示不限制
+        dataSource.setMaxIdle(maxIdle);// 连接池中的最大空闲连接数，超过时，多余的空闲连接将会被释放，值为负数时表示不限制
+        dataSource.setMinIdle(minIdle);// 连接池中的最小空闲连接数，低于此数值时将会创建所欠缺的连接，值为0时表示不创建
+        dataSource.setMaxWait(maxWait);// 以毫秒表示的当连接池中没有可用连接时等待可用连接返回的时间，超时则抛出异常，值为-1时表示无限等待
+        dataSource.setRemoveAbandoned(true);// 是否清除已经超过removeAbandonedTimeout设置的无效连接
+        dataSource.setLogAbandoned(true);// 当清除无效链接时是否在日志中记录清除信息的标志
+        dataSource.setRemoveAbandonedTimeout(removeAbandonedTimeout); // 以秒表示清除无效链接的时限
+        dataSource.setNumTestsPerEvictionRun(numTestsPerEvictionRun);// 确保连接池中没有已破损的连接
+        dataSource.setTestOnBorrow(false);// 指定连接被调用时是否经过校验
+        dataSource.setTestOnReturn(false);// 指定连接返回到池中时是否经过校验
+        dataSource.setTestWhileIdle(true);// 指定连接进入空闲状态时是否经过空闲对象驱逐进程的校验
+        dataSource.setTimeBetweenEvictionRunsMillis(
+                timeBetweenEvictionRunsMillis); // 以毫秒表示空闲对象驱逐进程由运行状态进入休眠状态的时长，值为非正数时表示不运行任何空闲对象驱逐进程
+        dataSource.setMinEvictableIdleTimeMillis(minEvictableIdleTimeMillis); // 以毫秒表示连接被空闲对象驱逐进程驱逐前在池中保持空闲状态的最小时间
 
         // 动态的参数
-        dbcpDs.setDriverClassName(driverClassName);
-        dbcpDs.setUrl(url);
-        dbcpDs.setUsername(userName);
-        dbcpDs.setPassword(password);
+        dataSource.setDriverClassName(driverClassName);
+        dataSource.setUrl(url);
+        dataSource.setUsername(userName);
+        dataSource.setPassword(password);
 
-        if (dataMediaType.isOracle()) {
-            dbcpDs.addConnectionProperty("restrictGetTables", "true");
-            dbcpDs.setValidationQuery("select 1 from dual");
-        } else if (dataMediaType.isMysql()) {
+        if (dataMediaType.isMysql()) {
             // open the batch mode for mysql since 5.1.8
-            dbcpDs.addConnectionProperty("useServerPrepStmts", "false");
-            dbcpDs.addConnectionProperty("rewriteBatchedStatements", "true");
-            dbcpDs.addConnectionProperty("zeroDateTimeBehavior", "convertToNull");// 将0000-00-00的时间类型返回null
-            dbcpDs.addConnectionProperty("yearIsDateType", "false");// 直接返回字符串，不做year转换date处理
-            dbcpDs.addConnectionProperty("noDatetimeStringSync", "true");// 返回时间类型的字符串,不做时区处理
-            dbcpDs.addConnectionProperty("jdbcCompliantTruncation", "false");// 允许sqlMode为非严格模式
+            dataSource.addConnectionProperty("useServerPrepStmts", "false");
+            dataSource.addConnectionProperty("rewriteBatchedStatements", "true");
+            dataSource.addConnectionProperty("zeroDateTimeBehavior", "convertToNull");// 将0000-00-00的时间类型返回null
+            dataSource.addConnectionProperty("yearIsDateType", "false");// 直接返回字符串，不做year转换date处理
+            dataSource.addConnectionProperty("noDatetimeStringSync", "true");// 返回时间类型的字符串,不做时区处理
+            dataSource.addConnectionProperty("jdbcCompliantTruncation", "false");// 允许sqlMode为非严格模式
             if (StringUtils.isNotEmpty(encoding)) {
                 if (StringUtils.equalsIgnoreCase(encoding, "utf8mb4")) {
-                    dbcpDs.addConnectionProperty("characterEncoding", "utf8");
-                    dbcpDs.setConnectionInitSqls(Arrays.asList("set names utf8mb4"));
+                    dataSource.addConnectionProperty("characterEncoding", "utf8");
+                    dataSource.setConnectionInitSqls(Arrays.asList("set names utf8mb4"));
                 } else {
-                    dbcpDs.addConnectionProperty("characterEncoding", encoding);
+                    dataSource.addConnectionProperty("characterEncoding", encoding);
                 }
             }
-            dbcpDs.setValidationQuery("select 1");
+            dataSource.setValidationQuery("select 1");
         } else {
             logger.error("ERROR ## Unknow database type");
         }
 
-        return dbcpDs;
+        return dataSource;
     }
 
     public synchronized void destory() throws SQLException {
@@ -253,10 +250,6 @@ public class MediaPushDataSource implements DataSource {
         return delegate;
     }
 
-    public String getDbGroupKey() {
-        return dbGroupKey;
-    }
-
     public int getMaxWait() {
         return maxWait;
     }
@@ -319,10 +312,6 @@ public class MediaPushDataSource implements DataSource {
 
     public void setDelegate(DataSource delegate) {
         this.delegate = delegate;
-    }
-
-    public void setDbGroupKey(String dbGroupKey) {
-        this.dbGroupKey = dbGroupKey;
     }
 
     public void setMaxWait(int maxWait) {

@@ -16,6 +16,7 @@
 
 package com.alibaba.otter.shared.common.utils.meta;
 
+import com.alibaba.fastjson.JSON;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
@@ -297,7 +298,7 @@ public class DdlUtils {
     /**
      * 获取DRDS下表的拆分字段, 返回格式为 id,name
      * 
-     * @param dataSource
+     * @param jdbcTemplate
      * @param schemaName
      * @param tableName
      * @return

@@ -238,6 +238,11 @@ public class OtterController implements NodeTaskListener, OtterControllerMBean {
     }
 
     private void initNid() {
+        // start modify by hyunji
+        System.setProperty(OtterConstants.NID_NAME, "1");
+
+        // end modify by hyunji
+
         // 获取一下nid变量
         String nid = System.getProperty(OtterConstants.NID_NAME);
         if (StringUtils.isEmpty(nid)) {

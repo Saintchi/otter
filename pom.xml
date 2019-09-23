@@ -51,59 +51,75 @@
     <developerConnection>scm:git:git@github.com:alibaba/otter.git</developerConnection>
 	</scm>
 
+	<!--<repositories>-->
+		<!--<repository>-->
+			<!--<id>central</id>-->
+			<!--<url>http://repo1.maven.org/maven2</url>-->
+			<!--<releases>-->
+				<!--<enabled>true</enabled>-->
+			<!--</releases>-->
+			<!--<snapshots>-->
+				<!--<enabled>false</enabled>-->
+			<!--</snapshots>-->
+		<!--</repository>-->
+		<!--<repository>-->
+			<!--<id>java.net</id>-->
+			<!--<url>http://download.java.net/maven/2/</url>-->
+			<!--<releases>-->
+				<!--<enabled>true</enabled>-->
+			<!--</releases>-->
+			<!--<snapshots>-->
+				<!--<enabled>false</enabled>-->
+			<!--</snapshots>-->
+		<!--</repository>-->
+		<!--<repository>-->
+			<!--<id>jtester-maven</id>-->
+			<!--<name>JTester</name>-->
+			<!--<url>http://jtester.googlecode.com/svn/m2/</url>-->
+			<!--<releases>-->
+				<!--<enabled>true</enabled>-->
+			<!--</releases>-->
+			<!--<snapshots>-->
+				<!--<enabled>false</enabled>-->
+			<!--</snapshots>-->
+		<!--</repository>-->
+		<!--<repository>-->
+			<!--<id>sonatype</id>-->
+			<!--<name>sonatype</name>-->
+			<!--<url>https://oss.sonatype.org/content/repositories/snapshots</url>-->
+			<!--<releases>-->
+				<!--<enabled>false</enabled>-->
+			<!--</releases>-->
+			<!--<snapshots>-->
+				<!--<enabled>true</enabled>-->
+			<!--</snapshots>-->
+		<!--</repository>-->
+		<!--<repository>-->
+			<!--<id>sonatype-release</id>-->
+			<!--<name>sonatype-release</name>-->
+			<!--<url>https://oss.sonatype.org/service/local/repositories/releases/content</url>-->
+			<!--<releases>-->
+				<!--<enabled>false</enabled>-->
+			<!--</releases>-->
+			<!--<snapshots>-->
+				<!--<enabled>true</enabled>-->
+			<!--</snapshots>-->
+		<!--</repository>-->
+	<!--</repositories>-->
+
 	<repositories>
 		<repository>
-			<id>central</id>
-			<url>http://repo1.maven.org/maven2</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-		<repository>
-			<id>java.net</id>
-			<url>http://download.java.net/maven/2/</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-		<repository>
-			<id>jtester-maven</id>
-			<name>JTester</name>
-			<url>http://jtester.googlecode.com/svn/m2/</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-		<repository>
-			<id>sonatype</id>
-			<name>sonatype</name>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
+			<id>leoao-maven</id>
+			<url>http://maven.leoao.com/nexus/content/groups/public</url>
+			<layout>default</layout>
 			<snapshots>
 				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
 			</snapshots>
-		</repository>
-		<repository>
-			<id>sonatype-release</id>
-			<name>sonatype-release</name>
-			<url>https://oss.sonatype.org/service/local/repositories/releases/content</url>
 			<releases>
-				<enabled>false</enabled>
-			</releases>
-			<snapshots>
 				<enabled>true</enabled>
-			</snapshots>
+				<updatePolicy>always</updatePolicy>
+			</releases>
 		</repository>
 	</repositories>
 
@@ -129,11 +145,16 @@
 
 	<dependencyManagement>
 		<dependencies>
-			<!-- commons -->
+			 <!--commons-->
             <dependency>
 				<groupId>commons-dbcp</groupId>
 				<artifactId>commons-dbcp</artifactId>
 				<version>1.4</version>
+			</dependency>
+			<dependency>
+				<groupId>com.alibaba</groupId>
+				<artifactId>druid</artifactId>
+				<version>1.1.9</version>
 			</dependency>
             <dependency>
 				<groupId>commons-lang</groupId>
@@ -435,16 +456,31 @@
         </testResources>
 	</build>
 
+	<!--<distributionManagement>-->
+		<!--<snapshotRepository>-->
+			<!--<id>sonatype-nexus-snapshots</id>-->
+			<!--<name>Sonatype Nexus Snapshots</name>-->
+			<!--<url>https://oss.sonatype.org/content/repositories/snapshots/</url>-->
+		<!--</snapshotRepository>-->
+		<!--<repository>-->
+			<!--<id>sonatype-nexus-staging</id>-->
+			<!--<name>Nexus Release Repository</name>-->
+			<!--<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>-->
+		<!--</repository>-->
+	<!--</distributionManagement>-->
+
 	<distributionManagement>
-		<snapshotRepository>
-			<id>sonatype-nexus-snapshots</id>
-			<name>Sonatype Nexus Snapshots</name>
-			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-		</snapshotRepository>
 		<repository>
-			<id>sonatype-nexus-staging</id>
-			<name>Nexus Release Repository</name>
-			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+			<id>releases</id>
+			<name>leoao-releases</name>
+			<url>http://maven.leoao.com/nexus/content/repositories/releases/</url>
 		</repository>
+
+		<snapshotRepository>
+			<id>snapshots</id>
+			<name>leoao-snapshots</name>
+			<url>http://maven.leoao.com/nexus/content/repositories/snapshots/</url>
+		</snapshotRepository>
 	</distributionManagement>
+
 </project>

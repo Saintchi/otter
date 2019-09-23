@@ -23,7 +23,7 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.dbcp.BasicDataSource;
+import com.alibaba.druid.pool.DruidDataSource;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -123,9 +123,9 @@ public class DBDataSourceService implements DataSourceService, DisposableBean {
 
                     // fallback for regular destroy
                     // TODO need to integrate to handler
-                    BasicDataSource basicDataSource = (BasicDataSource) source;
-                    basicDataSource.close();
-                } catch (SQLException e) {
+                    DruidDataSource DruidDataSource = (DruidDataSource) source;
+                    DruidDataSource.close();
+                } catch (Exception e) {
                     logger.error("ERROR ## close the datasource has an error", e);
                 }
             }
@@ -159,7 +159,7 @@ public class DBDataSourceService implements DataSourceService, DisposableBean {
 
     private DataSource createDataSource(String url, String userName, String password, String driverClassName,
                                         DataMediaType dataMediaType, String encoding) {
-        BasicDataSource dbcpDs = new BasicDataSource();
+        DruidDataSource dbcpDs = new DruidDataSource();
 
         dbcpDs.setInitialSize(initialSize);// 初始化连接池时创建的连接数
         dbcpDs.setMaxActive(maxActive);// 连接池允许的最大并发连接数，值为非正数时表示不限制
